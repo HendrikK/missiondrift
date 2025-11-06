@@ -1,0 +1,2032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Drift Explorer</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📊</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            color: #161616;
+            line-height: 1.5;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body.dark-mode {
+            background: #161616;
+            color: #f4f4f4;
+        }
+
+        .mobile-banner {
+            display: none;
+            background: #fdd13a;
+            color: #161616;
+            padding: 12px 16px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 1px solid #f1c21b;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-banner {
+                display: block;
+            }
+        }
+
+        .app-header {
+            background: #161616;
+            padding: 16px 0;
+            border-bottom: 1px solid #393939;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-header .container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            color: #f4f4f4;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.11s;
+            margin-left: 5px;
+        }
+
+        .theme-toggle:hover {
+            background: #393939;
+        }
+
+        .theme-toggle svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .github-link {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            color: #f4f4f4;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.11s;
+            text-decoration: none;
+            margin-left: 5px;
+        }
+
+        .github-link:hover {
+            background: #393939;
+        }
+
+        .github-link svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .linkedin-link {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            color: #f4f4f4;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.11s;
+            text-decoration: none;
+            margin-left: 5px;
+        }
+
+        .linkedin-link:hover {
+            background: #393939;
+        }
+
+        .linkedin-link svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .app-logo {
+            font-size: 24px;
+            font-weight: 400;
+            color: #ffffff;
+        }
+
+        .app-nav {
+            display: flex;
+            gap: 32px;
+            margin-left: auto;
+            margin-right: 16px;
+        }
+
+        .app-nav a {
+            color: #f4f4f4;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.11s;
+            cursor: pointer;
+        }
+
+        .app-nav a:hover {
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 1584px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        header {
+            padding: 80px 0 48px 0;
+            transition: border-color 0.3s ease;
+        }
+
+        body.dark-mode header {
+            border-bottom: 1px solid #393939;
+        }
+
+        h1 {
+            font-size: 54px;
+            font-weight: 400;
+            margin-bottom: 16px;
+            background: linear-gradient(90deg, #0f62fe 0%, #8a3ffc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+            display: inline-block;
+        }
+
+        .subtitle {
+            color: #525252;
+            font-size: 20px;
+            margin-bottom: 32px;
+            max-width: 800px;
+            white-space: nowrap;
+            transition: color 0.3s ease;
+        }
+
+        body.dark-mode .subtitle {
+            color: #c6c6c6;
+        }
+
+        .search-container {
+            margin-top: 32px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .search-wrapper {
+            position: relative;
+            max-width: 400px;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .reset-filters {
+            color: #0f62fe;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 10px 0;
+            display: none;
+            white-space: nowrap;
+        }
+
+        .reset-filters:hover {
+            color: #0043ce;
+        }
+
+        .reset-filters.visible {
+            display: block;
+        }
+
+        .filter-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #525252;
+            text-transform: uppercase;
+            letter-spacing: 0.32px;
+            transition: color 0.3s ease;
+        }
+
+        body.dark-mode .filter-label {
+            color: #c6c6c6;
+        }
+
+        .filter-select {
+            padding: 10px 48px 10px 16px;
+            font-size: 14px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            border: none;
+            border-bottom: 1px solid #161616;
+            background: #f4f4f4;
+            outline: none;
+            cursor: pointer;
+            transition: background 0.11s cubic-bezier(0.2, 0, 0.38, 0.9), border-color 0.3s ease, color 0.3s ease;
+            min-width: 200px;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 11L3 6L13 6L8 11Z' fill='%23161616'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            color: #161616;
+        }
+
+        body.dark-mode .filter-select {
+            background-color: #262626;
+            border-bottom: 1px solid #6f6f6f;
+            background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 11L3 6L13 6L8 11Z' fill='%23f4f4f4'/%3E%3C/svg%3E");
+            color: #f4f4f4;
+        }
+
+        body.dark-mode .filter-select option {
+            background: #262626;
+            color: #f4f4f4;
+        }
+
+        .filter-select:focus {
+            background-color: #ffffff;
+            outline: 2px solid #0f62fe;
+            outline-offset: -2px;
+        }
+
+        body.dark-mode .filter-select:focus {
+            background-color: #393939;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 48px;
+            font-size: 14px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            border: none;
+            border-bottom: 1px solid #161616;
+            background: #f4f4f4;
+            outline: none;
+            transition: background 0.11s cubic-bezier(0.2, 0, 0.38, 0.9);
+            color: #161616;
+        }
+
+        body.dark-mode .search-input {
+            background: #262626;
+            border-bottom: 1px solid #6f6f6f;
+            color: #f4f4f4;
+        }
+
+        .search-input:focus {
+            background: #ffffff;
+            outline: 2px solid #0f62fe;
+            outline-offset: -2px;
+        }
+
+        body.dark-mode .search-input:focus {
+            background: #393939;
+        }
+
+        .search-input::placeholder {
+            color: #525252;
+        }
+
+        body.dark-mode .search-input::placeholder {
+            color: #8d8d8d;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #161616;
+            pointer-events: none;
+            transition: color 0.3s ease;
+        }
+
+        body.dark-mode .search-icon {
+            color: #f4f4f4;
+        }
+
+        .table-section {
+            padding: 8px 0;
+        }
+
+        .tabs-container {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 24px;
+            transition: border-color 0.3s ease;
+        }
+
+        body.dark-mode .tabs-container {
+            border-bottom: 2px solid #393939;
+        }
+
+        .tab {
+            padding: 16px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #525252;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.11s;
+        }
+
+        body.dark-mode .tab {
+            color: #c6c6c6;
+        }
+
+        .tab:hover {
+            color: #161616;
+        }
+
+        body.dark-mode .tab:hover {
+            color: #f4f4f4;
+        }
+
+        .tab.active {
+            color: #161616;
+        }
+
+        body.dark-mode .tab.active {
+            color: #f4f4f4;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0f62fe;
+            animation: slideIn 0.3s ease forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: scaleX(0);
+                opacity: 0;
+            }
+            to {
+                transform: scaleX(1);
+                opacity: 1;
+            }
+        }
+
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeInUp 0.3s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        body.dark-mode .tab-content {
+            background: transparent;
+        }
+
+        .chart-container {
+            background: #ffffff;
+            padding: 32px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #161616;
+            margin-bottom: 24px;
+        }
+
+        .chart-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chart-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .chart-row.animate {
+            opacity: 0;
+            animation: fadeInRow 0.4s ease forwards;
+        }
+
+        .chart-row.animate:nth-child(1) { animation-delay: 0.05s; }
+        .chart-row.animate:nth-child(2) { animation-delay: 0.1s; }
+        .chart-row.animate:nth-child(3) { animation-delay: 0.15s; }
+        .chart-row.animate:nth-child(4) { animation-delay: 0.2s; }
+        .chart-row.animate:nth-child(5) { animation-delay: 0.25s; }
+        .chart-row.animate:nth-child(6) { animation-delay: 0.3s; }
+        .chart-row.animate:nth-child(7) { animation-delay: 0.35s; }
+        .chart-row.animate:nth-child(8) { animation-delay: 0.4s; }
+        .chart-row.animate:nth-child(9) { animation-delay: 0.45s; }
+        .chart-row.animate:nth-child(10) { animation-delay: 0.5s; }
+
+        .chart-label {
+            width: 180px;
+            font-size: 14px;
+            color: #161616;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .chart-bar-container {
+            flex: 1;
+            position: relative;
+            height: 32px;
+            background: #f4f4f4;
+        }
+
+        .chart-bar {
+            height: 100%;
+            background: #0f62fe;
+            transition: opacity 0.2s ease;
+            position: relative;
+            cursor: pointer;
+            opacity: 1;
+        }
+
+        .chart-bar.animate {
+            animation: expandBar 0.8s ease forwards;
+        }
+
+        @keyframes expandBar {
+            from {
+                width: 0 !important;
+            }
+            to {
+                width: var(--bar-width) !important;
+            }
+        }
+
+        .chart-bar:hover {
+            opacity: 1 !important;
+        }
+
+        .chart-row.faded .chart-bar {
+            opacity: 0.3;
+        }
+
+        .chart-row.faded:hover .chart-bar {
+            opacity: 1;
+        }
+
+        .chart-tooltip {
+            position: fixed;
+            background: #161616;
+            color: #ffffff;
+            padding: 16px;
+            border-radius: 4px;
+            font-size: 12px;
+            max-width: 400px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.11s;
+            z-index: 10000;
+            line-height: 1.5;
+        }
+
+        .chart-tooltip.visible {
+            opacity: 1;
+        }
+
+        .chart-tooltip-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .chart-tooltip-section {
+            margin-bottom: 8px;
+        }
+
+        .chart-tooltip-label {
+            color: #c6c6c6;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.32px;
+            margin-bottom: 4px;
+        }
+
+        .chart-bar.drift-low {
+            background: #0E6027;
+        }
+
+        .chart-bar.drift-moderate {
+            background: #6929C4;
+        }
+
+        .chart-bar.drift-high {
+            background: #A2191F;
+        }
+
+        .chart-value {
+            position: absolute;
+            right: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            font-weight: 600;
+            color: #161616;
+        }
+
+        .chart-axis {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            padding-left: 196px;
+            font-size: 12px;
+            color: #525252;
+        }
+
+        .table-container {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            overflow: visible;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            transition: background-color 0.3s ease;
+        }
+
+        body.dark-mode table {
+            background: #262626;
+        }
+
+        tbody {
+            background: #ffffff;
+            transition: background-color 0.3s ease;
+        }
+
+        body.dark-mode tbody {
+            background: #262626;
+        }
+
+        thead {
+            background: #f4f4f4;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            color: #161616;
+            text-transform: uppercase;
+            letter-spacing: 0.32px;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        th:hover {
+            background: #e8e8e8;
+        }
+
+        th.sortable::after {
+            content: ' ↕';
+            opacity: 0.3;
+            margin-left: 4px;
+        }
+
+        th.sort-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+
+        th.sort-desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+
+        th:first-child {
+            width: 100px;
+        }
+
+        th:nth-child(2) {
+            width: 220px;
+        }
+
+        th:nth-child(3) {
+            width: 140px;
+        }
+
+        th:nth-child(6) {
+            width: 185px;
+        }
+
+        .th-content {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .info-icon {
+            display: inline-flex;
+            align-items: center;
+            cursor: help;
+            color: #525252;
+            transition: color 0.11s;
+            position: relative;
+        }
+
+        body.dark-mode .info-icon {
+            color: #c6c6c6;
+        }
+
+        .info-icon:hover {
+            color: #0f62fe;
+        }
+
+        .info-icon svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .info-icon::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #161616;
+            color: #ffffff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 400;
+            white-space: normal;
+            width: 250px;
+            text-align: left;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 1000;
+            text-transform: none;
+            letter-spacing: 0;
+            line-height: 1.4;
+        }
+
+        .info-icon::after {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 2px);
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #161616;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 1000;
+        }
+
+        .info-icon:hover::before,
+        .info-icon:hover::after {
+            opacity: 1;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #e0e0e0;
+            transition: background-color 0.11s cubic-bezier(0.2, 0, 0.38, 0.9);
+            cursor: pointer;
+            position: relative;
+            opacity: 0;
+            animation: fadeInRow 0.4s ease forwards;
+        }
+
+        tbody tr:nth-child(2n+1) { animation-delay: 0.05s; }
+        tbody tr:nth-child(2n+2) { animation-delay: 0.1s; }
+        tbody tr:nth-child(2n+3) { animation-delay: 0.15s; }
+        tbody tr:nth-child(2n+4) { animation-delay: 0.2s; }
+        tbody tr:nth-child(2n+5) { animation-delay: 0.25s; }
+        tbody tr:nth-child(2n+6) { animation-delay: 0.3s; }
+        tbody tr:nth-child(2n+7) { animation-delay: 0.35s; }
+        tbody tr:nth-child(2n+8) { animation-delay: 0.4s; }
+        tbody tr:nth-child(2n+9) { animation-delay: 0.45s; }
+        tbody tr:nth-child(2n+10) { animation-delay: 0.5s; }
+
+        @keyframes fadeInRow {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        tbody tr:hover {
+            background: #f4f4f4;
+        }
+
+        tbody tr.expanded {
+            background: #f4f4f4;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .expanded-row {
+            display: none;
+        }
+
+        .expanded-row.visible {
+            display: table-row;
+        }
+
+        .expanded-content {
+            padding: 32px;
+            background: #f9fafb;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .analysis-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #161616;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 0.32px;
+        }
+
+        .analysis-section {
+            margin-bottom: 24px;
+        }
+
+        .analysis-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #161616;
+            margin-bottom: 8px;
+        }
+
+        .analysis-section-text {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #525252;
+        }
+
+        td {
+            padding: 24px 16px;
+            vertical-align: middle;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #161616;
+        }
+
+        .rank-cell {
+            font-weight: 600;
+            color: #525252;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .company-cell {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .company-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 0;
+            background: #0f62fe;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 11px;
+            color: #ffffff;
+            flex-shrink: 0;
+            letter-spacing: 0.5px;
+        }
+
+        .company-name {
+            font-weight: 600;
+            color: #161616;
+            font-size: 16px;
+        }
+
+
+        .mission-text {
+            color: #161616;
+            font-weight: 400;
+        }
+
+        .real-mission-text {
+            color: #525252;
+            font-weight: 400;
+        }
+
+        .drift-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .drift-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 24px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.11s;
+        }
+
+        .drift-badge:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .drift-badge.drift-low {
+            background: #A7F0BA !important;
+            color: #0E6027 !important;
+        }
+
+        .drift-badge.drift-moderate {
+            background: #E8DAFF !important;
+            color: #6929C4 !important;
+        }
+
+        .drift-badge.drift-high {
+            background: #FFD7D9 !important;
+            color: #A2191F !important;
+        }
+
+        .drift-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .drift-low .drift-indicator { background: #0E6027; }
+        .drift-moderate .drift-indicator { background: #6929C4; }
+        .drift-high .drift-indicator { background: #A2191F; }
+
+        .drift-text {
+            font-weight: 500;
+        }
+
+        .drift-popover {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #161616;
+            color: #ffffff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.11s;
+            z-index: 10000;
+        }
+
+        .drift-popover::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #161616;
+        }
+
+        .drift-badge:hover .drift-popover {
+            opacity: 1;
+        }
+
+        @media (max-width: 1200px) {
+            h1 {
+                font-size: 42px;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 1200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 48px 0 32px 0;
+            }
+
+            h1 {
+                font-size: 32px;
+            }
+
+            .subtitle {
+                font-size: 16px;
+            }
+        }
+
+        /* Modal Styles - IBM Carbon Design System */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(22, 22, 22, 0.5);
+            z-index: 9000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.24s cubic-bezier(0.2, 0, 0.38, 0.9);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-container {
+            background: #ffffff;
+            max-width: 768px;
+            width: 90%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.24s cubic-bezier(0.2, 0, 0.38, 0.9);
+        }
+
+        body.dark-mode .modal-container {
+            background: #262626;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        body.dark-mode .modal-header {
+            border-bottom: 1px solid #393939;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 400;
+            color: #161616;
+            margin: 0;
+        }
+
+        body.dark-mode .modal-title {
+            color: #f4f4f4;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #161616;
+            transition: background 0.11s;
+            border-radius: 4px;
+        }
+
+        body.dark-mode .modal-close {
+            color: #f4f4f4;
+        }
+
+        .modal-close:hover {
+            background: #e0e0e0;
+        }
+
+        body.dark-mode .modal-close:hover {
+            background: #393939;
+        }
+
+        .modal-body {
+            padding: 16px;
+            overflow-y: auto;
+            flex: 1;
+            color: #161616;
+        }
+
+        body.dark-mode .modal-body {
+            color: #f4f4f4;
+        }
+
+        .modal-body p {
+            margin: 0 0 16px 0;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .modal-body p:last-child {
+            margin-bottom: 0;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 16px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        body.dark-mode .modal-footer {
+            border-top: 1px solid #393939;
+        }
+
+        .modal-button-secondary {
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 400;
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: transparent;
+            border: 1px solid #161616;
+            color: #161616;
+            cursor: pointer;
+            transition: background 0.11s, border-color 0.11s;
+        }
+
+        body.dark-mode .modal-button-secondary {
+            border-color: #f4f4f4;
+            color: #f4f4f4;
+        }
+
+        .modal-button-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        body.dark-mode .modal-button-secondary:hover {
+            background: #393939;
+        }
+
+        @media (max-width: 768px) {
+            .modal-container {
+                width: 95%;
+                max-height: 95vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-banner">
+        💻 This website is best viewed on desktop for optimal experience
+    </div>
+    <div class="app-header">
+        <div class="container">
+            <div class="app-logo">Mission Drift Explorer</div>
+            <nav class="app-nav">
+                <a href="#" onclick="openAboutModal(event)">About</a>
+            </nav>
+            <a href="https://www.linkedin.com/in/hendrikkleine/" target="_blank" rel="noopener noreferrer" class="linkedin-link" aria-label="View LinkedIn profile" title="View LinkedIn profile">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M18.5208 0H1.47917C0.661458 0 0 0.645833 0 1.44271V18.5573C0 19.3542 0.661458 20 1.47917 20H18.5208C19.3385 20 20 19.3542 20 18.5573V1.44271C20 0.645833 19.3385 0 18.5208 0ZM5.9375 17.0833H2.95833V7.5H5.9375V17.0833ZM4.44792 6.19792C3.49479 6.19792 2.72917 5.43229 2.72917 4.47917C2.72917 3.52604 3.49479 2.76042 4.44792 2.76042C5.40104 2.76042 6.16667 3.52604 6.16667 4.47917C6.16667 5.43229 5.40104 6.19792 4.44792 6.19792ZM17.0833 17.0833H14.1042V12.4C14.1042 11.2958 14.0833 9.87083 12.5521 9.87083C10.9958 9.87083 10.7625 11.0875 10.7625 12.3167V17.0833H7.78333V7.5H10.6458V8.78125H10.6875C11.0833 8.025 12.0729 7.22917 13.5521 7.22917C16.5625 7.22917 17.0833 9.19167 17.0833 11.7542V17.0833Z"/>
+                </svg>
+            </a>
+            <a href="https://github.com/HendrikK/missiondrift" target="_blank" rel="noopener noreferrer" class="github-link" aria-label="View on GitHub" title="View on GitHub">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z" clip-rule="evenodd"/>
+                </svg>
+            </a>
+            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">
+                <svg class="light-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/>
+                </svg>
+                <svg class="dark-icon" style="display: none;" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>Corporate Mission Drift Analysis</h1>
+            <p class="subtitle">Examining the gap between stated missions and actual corporate behavior</p>
+            <div class="search-container">
+                <div class="search-wrapper">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M15 15L10.5 10.5M12 6.5C12 9.53757 9.53757 12 6.5 12C3.46243 12 1 9.53757 1 6.5C1 3.46243 3.46243 1 6.5 1C9.53757 1 12 3.46243 12 6.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        class="search-input" 
+                        placeholder="Search by company name or ticker"
+                        oninput="filterTable()"
+                    >
+                </div>
+                <div class="filter-group">
+                    <div class="filter-wrapper">
+                        <label class="filter-label" for="sectorFilter">Sector</label>
+                        <select id="sectorFilter" class="filter-select" onchange="filterTable()">
+                            <option value="all">All Sectors</option>
+                        </select>
+                    </div>
+                    <div class="filter-wrapper">
+                        <label class="filter-label" for="driftFilter">Mission Drift</label>
+                        <select id="driftFilter" class="filter-select" onchange="filterTable()">
+                            <option value="all">All</option>
+                            <option value="Low">Low</option>
+                            <option value="Moderate">Moderate</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+                    <span class="reset-filters" id="resetFilters" onclick="resetAllFilters()">Reset all</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="table-section">
+            <div class="tabs-container">
+                <button class="tab active" onclick="switchTab('table')">Table</button>
+                <button class="tab" onclick="switchTab('chart')">Chart</button>
+            </div>
+
+            <div id="tableTab" class="tab-content active">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sortable" onclick="sortTable('rank')">
+                                    <span class="th-content">
+                                        Rank
+                                        <span class="info-icon" data-tooltip="Fortune 500 ranking.">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                                <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm1 12H7V7h2v5zm0-6H7V4h2v2z"/>
+                                            </svg>
+                                        </span>
+                                    </span>
+                                </th>
+                                <th>Company</th>
+                                <th>Sector</th>
+                                <th>
+                                    <span class="th-content">
+                                        Stated Mission/Purpose
+                                        <span class="info-icon" data-tooltip="The official mission statement or purpose as publicly declared by the company in their corporate materials, website, or annual reports.">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                                <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm1 12H7V7h2v5zm0-6H7V4h2v2z"/>
+                                            </svg>
+                                        </span>
+                                    </span>
+                                </th>
+                                <th>
+                                    <span class="th-content">
+                                        Interpreted "Real" Mission
+                                        <span class="info-icon" data-tooltip="An analysis of the company's actual operational priorities and behaviors, inferred from their business practices, resource allocation, and strategic decisions.">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                                <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm1 12H7V7h2v5zm0-6H7V4h2v2z"/>
+                                            </svg>
+                                        </span>
+                                    </span>
+                                </th>
+                                <th class="sortable" onclick="sortTable('drift')">
+                                    <span class="th-content">
+                                        Mission Drift
+                                        <span class="info-icon" data-tooltip="Mission Drift measures the gap between a company's stated mission and its actual business practices. Low drift indicates strong alignment, while high drift suggests significant divergence.">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                                <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm1 12H7V7h2v5zm0-6H7V4h2v2z"/>
+                                            </svg>
+                                        </span>
+                                    </span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="chartTab" class="tab-content">
+                <div class="chart-container" id="chartContainer">
+                    <h3 class="chart-title">Mission Integrity Score by Company</h3>
+                    <div class="chart-bars" id="chartBars"></div>
+                    <div class="chart-axis">
+                        <span>0</span>
+                        <span>25</span>
+                        <span>50</span>
+                        <span>75</span>
+                        <span>100</span>
+                    </div>
+                </div>
+                <div class="chart-tooltip" id="chartTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+            <div id="chartTab" class="tab-content">
+                <div class="chart-container" id="chartContainer">
+                    <h3 class="chart-title">Mission Integrity Score by Company</h3>
+                    <div class="chart-bars" id="chartBars"></div>
+                    <div class="chart-axis">
+                        <span>0</span>
+                        <span>25</span>
+                        <span>50</span>
+                        <span>75</span>
+                        <span>100</span>
+                    </div>
+                </div>
+                <div class="chart-tooltip" id="chartTooltip"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- About Modal -->
+    <div class="modal-overlay" id="aboutModal" onclick="closeAboutModal(event)">
+        <div class="modal-container" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">About Mission Drift Explorer</h3>
+                <button class="modal-close" onclick="closeAboutModal()" aria-label="Close modal">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M12 4.7L11.3 4 8 7.3 4.7 4 4 4.7 7.3 8 4 11.3 4.7 12 8 8.7 11.3 12 12 11.3 8.7 8z"/>
+                    </svg>
+                </button>
+            </div>
+
+
+            <div class="modal-body">
+                <p><strong>Mission Drift</strong> is a fun side project built to explore how artificial intelligence interprets the gap between what companies <em>say</em> and what they <em>do</em>.</p>
+                <p>Using <strong>OpenAI’s ChatGPT‑5</strong>, each Fortune 10 company’s official mission statement was analyzed alongside its real‑world behavior — things like business models, earnings, and investments. From that, the AI generated an alternate “real mission,” a <strong>Mission Integrity Score</strong>, and playful visualizations like the <em>Heatmap</em>, <em>Drift Map</em>, and <em>Buzzword Analyzer</em>.</p>
+                <p>This isn’t an academic study or an investor tool — it’s a creative experiment in AI reasoning, corporate storytelling, and a bit of satire. The goal is to make you think (and maybe smile) about how purpose and profit interact in the modern corporate world.</p>
+                <p><strong>Built for curiosity. Powered by AI. Not investment advice.</strong></p>
+</div>
+            <div class="modal-footer">
+                <button class="modal-button-secondary" onclick="closeAboutModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+        </div>
+    </div>
+
+    <script>
+        const companies = [
+            {
+                rank: 1,
+                name: "Walmart",
+                ticker: "WMT",
+                sector: "Retail",
+                stated: "To save people money so they can live better.",
+                real: "To dominate retail by offering the lowest cost and most convenient access, shaping consumer dependency and capturing market share.",
+                drift: "Moderate",
+                score: 68,
+                analysis: {
+                    missionType: "Cost leadership and market consolidation.",
+                    mechanisms: "Supply chain optimization, economies of scale, strategic pricing, and physical/digital integration create a moat that makes it difficult for competitors to match prices while maintaining profitability.",
+                    evidence: "While the stated mission emphasizes helping people save money, the company's aggressive expansion and market dominance strategies have led to concerns about labor practices, wage suppression, and the displacement of local businesses.",
+                    outcome: "Walmart optimizes for market share and operational efficiency, creating a dependency loop where low prices drive customer loyalty, which enables further scale advantages and market consolidation."
+                }
+            },
+            {
+                rank: 2,
+                name: "Amazon",
+                ticker: "AMZN",
+                sector: "Technology",
+                stated: "To be Earth's most customer-centric company...",
+                real: "To capture as much consumer and enterprise spend as possible by embedding into commerce, logistics, and cloud.",
+                drift: "High",
+                score: 45,
+                analysis: {
+                    missionType: "Platform expansion and behavioral capture.",
+                    mechanisms: "Prime membership, AWS, Fulfillment by Amazon, and a vast logistics network form a self-reinforcing ecosystem that captures spending and behavioral data. The firm uses AI recommendation engines, acquisitions, and marketplace control to entrench both sellers and buyers.",
+                    evidence: "The \"customer-centric\" narrative masks anti-competitive practices, warehouse surveillance, and pricing manipulation. Efficiency gains come at the cost of labor conditions and market neutrality.",
+                    outcome: "Amazon optimizes for ecosystem lock-in — ensuring that both consumers and businesses depend on its infrastructure to transact and compute, translating ubiquity into profit and power."
+                }
+            },
+            {
+                rank: 3,
+                name: "UnitedHealth Group",
+                ticker: "UNH",
+                sector: "Health Care",
+                stated: "To help people live healthier lives...",
+                real: "To integrate insurance, care delivery, and data at scale — controlling the ecosystem to manage risk, outcomes, and profitability.",
+                drift: "Moderate",
+                score: 60,
+                analysis: {
+                    missionType: "Vertical integration and data monopolization.",
+                    mechanisms: "Through Optum and UnitedHealthcare, the company controls insurance, pharmacy benefits, care delivery, and health data analytics. This vertical integration allows extraction of value at every touchpoint in the healthcare journey.",
+                    evidence: "While positioned as improving health outcomes, the business model prioritizes cost containment and revenue extraction. Denials, prior authorizations, and data asymmetries favor the company over patients and providers.",
+                    outcome: "UnitedHealth optimizes for ecosystem control and margin expansion across the healthcare value chain, with health improvement as a secondary or instrumental goal."
+                }
+            },
+            {
+                rank: 4,
+                name: "Apple",
+                ticker: "AAPL",
+                sector: "Technology",
+                stated: "To bring the best user experience...",
+                real: "To lock users into a premium ecosystem — maximizing lifetime revenue through seamless integration.",
+                drift: "Low",
+                score: 85,
+                analysis: {
+                    missionType: "Premium ecosystem entrenchment.",
+                    mechanisms: "Hardware-software integration, App Store policies, iCloud services, and cross-device continuity create switching costs. The walled garden approach ensures users remain within Apple's controlled environment.",
+                    evidence: "Apple genuinely delivers superior user experience through design and integration. However, this comes with premium pricing, limited repair options, and controlled distribution that maximizes revenue extraction.",
+                    outcome: "Apple optimizes for lifetime customer value within a closed ecosystem, where user experience excellence serves both customer satisfaction and revenue maximization — a rare alignment of stated and real missions."
+                }
+            },
+            {
+                rank: 5,
+                name: "CVS Health",
+                ticker: "CVS",
+                sector: "Health Care",
+                stated: "Building a more connected, compassionate healthcare experience.",
+                real: "To own the healthcare entry point by combining pharmacy, clinics, and insurance.",
+                drift: "Moderate",
+                score: 64,
+                analysis: {
+                    missionType: "Retail healthcare consolidation.",
+                    mechanisms: "CVS Pharmacy retail presence, MinuteClinic walk-in care, Aetna insurance, and pharmacy benefit management create touchpoints across the care journey, enabling data collection and care steering.",
+                    evidence: "The \"compassionate care\" framing obscures business practices focused on utilization management, formulary control, and steering patients to CVS-owned services. Convenience is real, but comes with reduced choice.",
+                    outcome: "CVS optimizes for owning the primary healthcare access point, using convenience and integration to capture patients within its controlled network while extracting value across multiple service layers."
+                }
+            },
+            {
+                rank: 6,
+                name: "Berkshire Hathaway",
+                ticker: "BRK.A",
+                sector: "Financials",
+                stated: "To be trusted and deliver long-term results.",
+                real: "To deploy capital efficiently across diverse businesses for compounding returns.",
+                drift: "Low",
+                score: 90,
+                analysis: {
+                    missionType: "Value investing and capital allocation.",
+                    mechanisms: "Berkshire acquires well-managed businesses with durable competitive advantages, provides patient capital, and allows operational autonomy while deploying insurance float for long-term investments.",
+                    evidence: "Berkshire's actions closely align with its stated mission. The company genuinely focuses on long-term value creation, shareholder trust, and sustainable business practices across its portfolio companies.",
+                    outcome: "Berkshire optimizes for long-term capital compounding through patient investing and operational excellence — demonstrating strong alignment between stated mission and actual behavior."
+                }
+            },
+            {
+                rank: 7,
+                name: "Alphabet (Google)",
+                ticker: "GOOGL",
+                sector: "Technology",
+                stated: "To organize the world's information...",
+                real: "To own digital ecosystems that capture behavior, data, and attention.",
+                drift: "High",
+                score: 40,
+                analysis: {
+                    missionType: "Attention monopolization and behavioral data extraction.",
+                    mechanisms: "Search dominance, Android OS, YouTube, Chrome browser, and advertising infrastructure create a surveillance ecosystem. Free services extract behavioral data that powers algorithmic ad targeting.",
+                    evidence: "While Google does organize information, the business model fundamentally depends on attention capture and behavioral surveillance. Privacy erosion, search manipulation, and market foreclosure contradict information neutrality.",
+                    outcome: "Google optimizes for attention capture and data monetization across digital touchpoints, with information organization serving as the vehicle for building advertising dominance."
+                }
+            },
+            {
+                rank: 8,
+                name: "Exxon Mobil",
+                ticker: "XOM",
+                sector: "Energy",
+                stated: "To deliver reliable, affordable energy responsibly.",
+                real: "To maximize fossil-fuel production and shareholder return while managing sustainability optics.",
+                drift: "High",
+                score: 35,
+                analysis: {
+                    missionType: "Fossil fuel extraction and climate delay.",
+                    mechanisms: "Upstream oil and gas production, downstream refining, and petrochemical operations maximize hydrocarbon value extraction. ESG reporting and renewable investments serve primarily as public relations.",
+                    evidence: "Despite \"responsible\" framing, Exxon has historically funded climate denial, lobbied against climate policy, and maintained minimal renewable energy investment relative to core fossil fuel operations.",
+                    outcome: "Exxon optimizes for near-term fossil fuel extraction and shareholder returns, with sustainability claims serving to delay regulatory action rather than drive meaningful energy transition."
+                }
+            },
+            {
+                rank: 9,
+                name: "McKesson",
+                ticker: "MCK",
+                sector: "Health Care",
+                stated: "Advancing health outcomes for all.",
+                real: "To control pharma logistics and data pipelines — optimizing margin in the healthcare supply chain.",
+                drift: "Moderate",
+                score: 58,
+                analysis: {
+                    missionType: "Healthcare supply chain intermediation.",
+                    mechanisms: "Pharmaceutical distribution, specialty pharmacy services, and healthcare IT solutions position McKesson as a critical intermediary extracting value from drug pricing complexity and information asymmetries.",
+                    evidence: "While essential infrastructure, McKesson's role in opaque drug pricing, rebate systems, and the opioid crisis reveals prioritization of margin optimization over genuine health outcome advancement.",
+                    outcome: "McKesson optimizes for supply chain efficiency and margin capture within a complex pharmaceutical pricing system, with health outcomes as a byproduct rather than primary driver."
+                }
+            },
+            {
+                rank: 10,
+                name: "Cencora",
+                ticker: "COR",
+                sector: "Health Care",
+                stated: "To empower partners and improve lives globally.",
+                real: "To consolidate pharmaceutical distribution and capture scale advantage worldwide.",
+                drift: "Moderate",
+                score: 55,
+                analysis: {
+                    missionType: "Global pharmaceutical distribution consolidation.",
+                    mechanisms: "Through AmerisourceBergen and international operations, Cencora controls pharmaceutical distribution networks, specialty pharmacy services, and manufacturer services, creating scale advantages and market power.",
+                    evidence: "The \"empowerment\" narrative obscures a business model built on consolidating distribution channels and extracting value from pharmaceutical supply chain complexity rather than fundamentally improving access or outcomes.",
+                    outcome: "Cencora optimizes for distribution network dominance and margin extraction from pharmaceutical supply chains, with partner empowerment and health improvement as secondary considerations."
+                }
+            }
+        ];
+
+        let currentSort = { column: null, direction: 'asc' };
+        let displayedCompanies = [...companies];
+
+        function initFilters() {
+            const sectors = [...new Set(companies.map(c => c.sector))].sort();
+            const sectorFilter = document.getElementById('sectorFilter');
+            sectors.forEach(sector => {
+                const option = document.createElement('option');
+                option.value = sector;
+                option.textContent = sector;
+                sectorFilter.appendChild(option);
+            });
+        }
+
+        function renderChart() {
+            const chartBars = document.getElementById('chartBars');
+            const chartContainer = document.getElementById('chartContainer');
+            const chartTitle = chartContainer.querySelector('.chart-title');
+            const chartAxis = chartContainer.querySelector('.chart-axis');
+            const filteredCompanies = getFilteredCompanies().sort((a, b) => b.score - a.score);
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            const labelColor = isDarkMode ? '#ffffff' : '#161616';
+            
+            // Define color mapping for drift levels
+            const driftColors = {
+                'Low': '#0E6027',
+                'Moderate': '#6929C4',
+                'High': '#A2191F'
+            };
+            
+            // Set background and text colors directly
+            if (chartContainer) {
+                chartContainer.style.backgroundColor = isDarkMode ? '#161616' : '#ffffff';
+                chartContainer.style.borderColor = isDarkMode ? '#393939' : '#e0e0e0';
+            }
+            
+            if (chartTitle) {
+                chartTitle.style.color = isDarkMode ? '#ffffff' : '#161616';
+            }
+            
+            if (chartAxis) {
+                chartAxis.style.color = isDarkMode ? '#ffffff' : '#525252';
+                const axisLabels = chartAxis.querySelectorAll('span');
+                axisLabels.forEach(label => {
+                    label.style.color = isDarkMode ? '#ffffff' : '#525252';
+                });
+            }
+            
+            if (filteredCompanies.length === 0) {
+                chartBars.innerHTML = `<div style="text-align: center; padding: 40px; color: ${isDarkMode ? '#f4f4f4' : '#525252'};">No companies match the current filters</div>`;
+                return;
+            }
+            
+            chartBars.innerHTML = filteredCompanies.map((company, index) => {
+                const barValueColor = driftColors[company.drift];
+                return `
+                <div class="chart-row">
+                    <div class="chart-label" style="color: ${labelColor};">${company.name}</div>
+                    <div class="chart-bar-container">
+                        <div class="chart-bar drift-${company.drift.toLowerCase()}" 
+                             style="--bar-width: ${company.score}%;"
+                             onmouseenter="showChartTooltip(event, ${index})"
+                             onmousemove="moveChartTooltip(event)"
+                             onmouseleave="hideChartTooltip()"
+                             data-company-index="${index}">
+                            <span class="chart-value" style="color: ${barValueColor};">${company.score}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            }).join('');
+            
+            window.chartCompanies = filteredCompanies;
+            
+            // Trigger animations after a brief delay
+            setTimeout(() => {
+                document.querySelectorAll('.chart-row').forEach(row => {
+                    row.classList.add('animate');
+                });
+                document.querySelectorAll('.chart-bar').forEach((bar, index) => {
+                    bar.style.width = '0';
+                    setTimeout(() => {
+                        bar.classList.add('animate');
+                    }, index * 50);
+                });
+            }, 50);
+        }
+
+        function getFilteredCompanies() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const sectorFilter = document.getElementById('sectorFilter').value;
+            const driftFilter = document.getElementById('driftFilter').value;
+            
+            return companies.filter(company => {
+                // Search filter - only match company name or ticker
+                const matchesSearch = searchTerm === '' || 
+                                     company.name.toLowerCase().includes(searchTerm) || 
+                                     company.ticker.toLowerCase().includes(searchTerm);
+                
+                // Sector filter - exact match or "all"
+                const matchesSector = sectorFilter === 'all' || company.sector === sectorFilter;
+                
+                // Drift filter - exact match or "all"
+                const matchesDrift = driftFilter === 'all' || company.drift === driftFilter;
+                
+                return matchesSearch && matchesSector && matchesDrift;
+            });
+        }
+
+        function showChartTooltip(event, index) {
+            const company = window.chartCompanies[index];
+            const tooltip = document.getElementById('chartTooltip');
+            
+            // Fade out all other bars
+            document.querySelectorAll('.chart-row').forEach((row, i) => {
+                if (i !== index) {
+                    row.classList.add('faded');
+                } else {
+                    row.classList.remove('faded');
+                }
+            });
+            
+            tooltip.innerHTML = `
+                <div class="chart-tooltip-title">${company.name}</div>
+                <div class="chart-tooltip-section">
+                    <div class="chart-tooltip-label">Stated Mission</div>
+                    <div>"${company.stated}"</div>
+                </div>
+                <div class="chart-tooltip-section">
+                    <div class="chart-tooltip-label">Interpreted "Real" Mission</div>
+                    <div>${company.real}</div>
+                </div>
+            `;
+            
+            tooltip.classList.add('visible');
+            moveChartTooltip(event);
+        }
+
+        function moveChartTooltip(event) {
+            const tooltip = document.getElementById('chartTooltip');
+            const offsetX = 0;
+            const offsetY = -500;
+            
+            // Position tooltip near cursor
+            let left = event.clientX + offsetX;
+            let top = event.clientY + offsetY;
+            
+            // Get tooltip dimensions
+            const tooltipRect = tooltip.getBoundingClientRect();
+            
+            // Adjust if tooltip would go off screen
+            if (left + tooltipRect.width > window.innerWidth) {
+                left = event.clientX - tooltipRect.width - offsetX;
+            }
+            if (top + tooltipRect.height > window.innerHeight) {
+                top = event.clientY - tooltipRect.height - offsetY;
+            }
+            
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        }
+
+        function hideChartTooltip() {
+            const tooltip = document.getElementById('chartTooltip');
+            tooltip.classList.remove('visible');
+            
+            // Remove fade effect from all bars
+            document.querySelectorAll('.chart-row').forEach(row => {
+                row.classList.remove('faded');
+            });
+        }
+
+        function hideChartTooltip() {
+            const tooltip = document.getElementById('chartTooltip');
+            tooltip.classList.remove('visible');
+            
+            // Remove fade effect from all bars
+            document.querySelectorAll('.chart-row').forEach(row => {
+                row.classList.remove('faded');
+            });
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Get current and new content
+            const currentContent = document.querySelector('.tab-content.active');
+            const newContent = tabName === 'table' 
+                ? document.getElementById('tableTab') 
+                : document.getElementById('chartTab');
+
+            // If switching to same tab, do nothing
+            if (currentContent === newContent) return;
+
+            // Fade out current content
+            if (currentContent) {
+                currentContent.style.opacity = '0';
+                currentContent.style.transform = 'translateY(-10px)';
+                
+                setTimeout(() => {
+                    currentContent.classList.remove('active');
+                    currentContent.style.opacity = '';
+                    currentContent.style.transform = '';
+                }, 150);
+            }
+
+            // Fade in new content after a brief delay
+            setTimeout(() => {
+                newContent.classList.add('active');
+                
+                if (tabName === 'chart') {
+                    renderChart();
+                }
+            }, 150);
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            const textColor = isDarkMode ? '#f4f4f4' : '#161616';
+            
+            tbody.innerHTML = displayedCompanies.map((company, index) => `
+                <tr data-company="${company.name.toLowerCase()}" data-ticker="${company.ticker.toLowerCase()}" data-sector="${company.sector}" data-drift="${company.drift}" onclick="toggleExpandRow(${index})" data-row-index="${index}">
+                    <td class="rank-cell" style="color: ${textColor};">${company.rank}</td>
+                    <td>
+                        <div class="company-cell">
+                            <div class="company-logo">${company.ticker}</div>
+                            <span class="company-name" style="color: ${isDarkMode ? '#ffffff' : '#161616'};">${company.name}</span>
+                        </div>
+                    </td>
+                    <td><span class="mission-text" style="color: ${textColor};">${company.sector}</span></td>
+                    <td><span class="mission-text" style="color: ${textColor};">"${company.stated}"</span></td>
+                    <td><span class="real-mission-text" style="color: ${isDarkMode ? '#e0e0e0' : '#525252'};">${company.real}</span></td>
+                    <td>
+                        <div class="drift-cell">
+                            <span class="drift-badge drift-${company.drift.toLowerCase()}">
+                                <span class="drift-indicator"></span>
+                                <span class="drift-text">${company.drift}</span>
+                                <span class="drift-popover">Mission Integrity Score: ${company.score}/100</span>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="expanded-row" id="expanded-${index}">
+                    <td colspan="7">
+                        <div class="expanded-content">
+                            <div class="analysis-title">AI Reasoning</div>
+                            
+                            <div class="analysis-section">
+                                <div class="analysis-section-title">Mission Type</div>
+                                <div class="analysis-section-text">${company.analysis.missionType}</div>
+                            </div>
+                            
+                            <div class="analysis-section">
+                                <div class="analysis-section-title">Mechanisms of Action</div>
+                                <div class="analysis-section-text">${company.analysis.mechanisms}</div>
+                            </div>
+                            
+                            <div class="analysis-section">
+                                <div class="analysis-section-title">Evidence of Divergence</div>
+                                <div class="analysis-section-text">${company.analysis.evidence}</div>
+                            </div>
+                            
+                            <div class="analysis-section">
+                                <div class="analysis-section-title">Outcome Orientation</div>
+                                <div class="analysis-section-text">${company.analysis.outcome}</div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Add hover listeners for dark mode
+            if (isDarkMode) {
+                const rows = tbody.querySelectorAll('tr:not(.expanded-row)');
+                rows.forEach(row => {
+                    row.addEventListener('mouseenter', function() {
+                        const spans = this.querySelectorAll('span:not(.drift-indicator):not(.drift-text):not(.drift-popover)');
+                        const tds = this.querySelectorAll('td');
+                        spans.forEach(span => span.style.color = '#161616');
+                        tds.forEach(td => td.style.color = '#161616');
+                    });
+                    row.addEventListener('mouseleave', function() {
+                        const index = this.getAttribute('data-row-index');
+                        const company = displayedCompanies[index];
+                        const spans = this.querySelectorAll('span:not(.drift-indicator):not(.drift-text):not(.drift-popover)');
+                        const tds = this.querySelectorAll('td');
+                        const companyName = this.querySelector('.company-name');
+                        const realMission = this.querySelector('.real-mission-text');
+                        
+                        spans.forEach(span => span.style.color = '#f4f4f4');
+                        tds.forEach(td => td.style.color = '#f4f4f4');
+                        if (companyName) companyName.style.color = '#ffffff';
+                        if (realMission) realMission.style.color = '#e0e0e0';
+                    });
+                });
+            }
+            
+            updateSortIndicators();
+            
+            // Reattach click event listeners to all rows after rendering
+            document.querySelectorAll('tbody tr:not(.expanded-row)').forEach(row => {
+                row.style.cursor = 'pointer';
+                row.onclick = function() {
+                    const index = this.getAttribute('data-row-index');
+                    toggleExpandRow(index);
+                };
+            });
+        }
+
+        function toggleExpandRow(index) {
+            const expandedRow = document.getElementById(`expanded-${index}`);
+            const mainRow = expandedRow.previousElementSibling;
+            
+            // Close all other expanded rows
+            document.querySelectorAll('.expanded-row.visible').forEach(row => {
+                if (row.id !== `expanded-${index}`) {
+                    row.classList.remove('visible');
+                    row.previousElementSibling.classList.remove('expanded');
+                }
+            });
+            
+            // Toggle current row
+            expandedRow.classList.toggle('visible');
+            mainRow.classList.toggle('expanded');
+        }
+
+        function sortTable(column) {
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'asc';
+            }
+
+            displayedCompanies.sort((a, b) => {
+                let aVal = a[column];
+                let bVal = b[column];
+                
+                if (column === 'drift') {
+                    const driftOrder = { 'Low': 1, 'Moderate': 2, 'High': 3 };
+                    aVal = driftOrder[aVal];
+                    bVal = driftOrder[bVal];
+                }
+                
+                if (currentSort.direction === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+
+            renderTable();
+        }
+
+        function updateSortIndicators() {
+            document.querySelectorAll('th').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+            });
+
+            if (currentSort.column) {
+                const th = document.querySelector(`th[onclick*="${currentSort.column}"]`);
+                if (th) {
+                    th.classList.add(currentSort.direction === 'asc' ? 'sort-asc' : 'sort-desc');
+                }
+            }
+        }
+
+        function filterTable() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const sectorFilter = document.getElementById('sectorFilter').value;
+            const driftFilter = document.getElementById('driftFilter').value;
+            
+            // Show/hide reset button
+            updateResetButton();
+            
+            // Filter the displayed companies array
+            displayedCompanies = companies.filter(company => {
+                // Search filter - only match company name or ticker
+                const matchesSearch = searchTerm === '' || 
+                                     company.name.toLowerCase().includes(searchTerm) || 
+                                     company.ticker.toLowerCase().includes(searchTerm);
+                
+                // Sector filter - exact match or "all"
+                const matchesSector = sectorFilter === 'all' || company.sector === sectorFilter;
+                
+                // Drift filter - exact match or "all"
+                const matchesDrift = driftFilter === 'all' || company.drift === driftFilter;
+                
+                return matchesSearch && matchesSector && matchesDrift;
+            });
+            
+            // Re-render the entire table with filtered data
+            renderTable();
+            
+            // Update chart if chart tab is active
+            if (document.getElementById('chartTab').classList.contains('active')) {
+                renderChart();
+            }
+        }
+
+        function updateResetButton() {
+            const searchTerm = document.getElementById('searchInput').value;
+            const sectorFilter = document.getElementById('sectorFilter').value;
+            const driftFilter = document.getElementById('driftFilter').value;
+            const resetButton = document.getElementById('resetFilters');
+            
+            if (searchTerm !== '' || sectorFilter !== 'all' || driftFilter !== 'all') {
+                resetButton.classList.add('visible');
+            } else {
+                resetButton.classList.remove('visible');
+            }
+        }
+
+        function resetAllFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('sectorFilter').value = 'all';
+            document.getElementById('driftFilter').value = 'all';
+            
+            // Completely re-render the table to reset everything
+            displayedCompanies = [...companies];
+            renderTable();
+            
+            // Hide reset button
+            document.getElementById('resetFilters').classList.remove('visible');
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const lightIcon = document.querySelector('.light-icon');
+            const darkIcon = document.querySelector('.dark-icon');
+            
+            body.classList.toggle('dark-mode');
+            
+            if (body.classList.contains('dark-mode')) {
+                lightIcon.style.display = 'none';
+                darkIcon.style.display = 'block';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                lightIcon.style.display = 'block';
+                darkIcon.style.display = 'none';
+                localStorage.setItem('theme', 'light');
+            }
+            
+            // Re-render table and chart to apply inline styles
+            renderTable();
+            if (document.getElementById('chartTab').classList.contains('active')) {
+                renderChart();
+            }
+        }
+
+        // Load saved theme on page load
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const lightIcon = document.querySelector('.light-icon');
+            const darkIcon = document.querySelector('.dark-icon');
+            
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                lightIcon.style.display = 'none';
+                darkIcon.style.display = 'block';
+            }
+        }
+
+        // Modal functions
+        function openAboutModal(event) {
+            if (event) event.preventDefault();
+            const modal = document.getElementById('aboutModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAboutModal(event) {
+            if (event && event.target !== event.currentTarget && !event.target.classList.contains('modal-close') && !event.target.closest('.modal-close')) {
+                return;
+            }
+            const modal = document.getElementById('aboutModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeAboutModal();
+            }
+        });
+
+        loadTheme();
+        initFilters();
+        renderTable();
+    </script>
+</body>
+</html>
